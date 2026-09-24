@@ -1,0 +1,8 @@
+services:
+  api:
+    build: .
+    container_name: cripta-api
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
