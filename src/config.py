@@ -8,3 +8,4 @@ load_dotenv()
 
 class Config(BaseModel):
     coingecko_api_key: str = env["COINGECKO_API_KEY"]
+    coingecko_base_url: str = env["COINGECKO_BASE_URL"]

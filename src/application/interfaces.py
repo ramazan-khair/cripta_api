@@ -1,20 +1,18 @@
-from abc import abstractmethod
+from dataclasses import dataclass
 from typing import Protocol
-from uuid import UUID
 
-from src.domain.entities import MarketChart
+from src.application.schemas import MarketChartSchema
+
+
+@dataclass(slots=True)
+class MarketChartRequest:
+    coin_id: str
+    vs_currency: str
+    from_timestamp: int
+    to_timestamp: int
+    interval: str | None = None
+    precision: str | None = None
 
 
 class MarketChartGateway(Protocol):
-    async def get_market_chart(
-            self,
-            coin_id: str,
-            vs_currency: str,
-            from_timestamp: int,
-            to_timestamp: int,
-            interval: int | None = None,
-            precision: int | None = None
-    ) -> MarketChart:
-        ...
-
-
+    async def get_market_chart(self, data: MarketChartRequest) -> MarketChartSchema: ...

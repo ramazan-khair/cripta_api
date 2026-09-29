@@ -1,7 +1,7 @@
 services:
   api:
     build: .
-    container_name: cripta-api
+    container_name: cripta_api
     env_file:
       - .env
     ports:

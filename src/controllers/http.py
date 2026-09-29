@@ -1,8 +1,10 @@
-from dishka.integrations.fastapi import FromDishka, DishkaRoute
-from fastapi import APIRouter, Query
+from dishka.integrations.fastapi import DishkaRoute, FromDishka
+from fastapi import APIRouter, Depends
 
 from src.application.interactors import GetMarketChartInteractor
-from src.controllers.schemas import MarketChartSchema
+from src.application.interfaces import MarketChartRequest
+from src.application.schemas import MarketChartSchema
+from src.controllers.schemas import MarketChartQuery
 
 router = APIRouter(route_class=DishkaRoute)
 
@@ -13,23 +15,16 @@ router = APIRouter(route_class=DishkaRoute)
 async def get_market_chart(
     interactor: FromDishka[GetMarketChartInteractor],
     coin_id: str,
-    vs_currency: str,
-    from_timestamp: int = Query(alias="from"),
-    to_timestamp: int = Query(alias="to"),
-    interval: str | None = None,
-    precision: str | None = None,
+    query: MarketChartQuery = Depends(),  # noqa: B008
 ) -> MarketChartSchema:
-    market_chart = await interactor(
+
+    data = MarketChartRequest(
         coin_id=coin_id,
-        vs_currency=vs_currency,
-        from_timestamp=from_timestamp,
-        to_timestamp=to_timestamp,
-        interval=interval,
-        precision=precision
+        vs_currency=query.vs_currency,
+        from_timestamp=query.from_timestamp,
+        to_timestamp=query.to_timestamp,
+        interval=query.interval,
+        precision=query.precision,
     )
 
-    return MarketChartSchema(
-        prices=market_chart.prices,
-        market_caps=market_chart.market_caps,
-        total_volumes=market_chart.total_volumes
-    )
+    return await interactor(data)

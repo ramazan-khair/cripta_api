@@ -1,62 +1,42 @@
 import httpx
 
-from src.domain.entities import MarketChart
+from src.application.interfaces import MarketChartRequest
+from src.application.schemas import MarketChartSchema
+from src.config import Config
 
 
 class CoinGeckoGateway:
+    def __init__(self, client: httpx.AsyncClient, config: Config) -> None:
+        self.client = client
+        self.api_key = config.coingecko_api_key
+        self.base_url = config.coingecko_base_url
 
-    BASE_URL = "https://api.coingecko.com/api/v3"
+    async def get_market_chart(self, data: MarketChartRequest) -> MarketChartSchema:
 
-    def __init__(
-        self,
-        api_key: str,
-    ) -> None:
-        self._api_key = api_key
+        url = f"{self.base_url}/coins/{data.coin_id}/market_chart/range"
 
-    async def get_market_chart(
-        self,
-        coin_id: str,
-        vs_currency: str,
-        from_timestamp: int,
-        to_timestamp: int,
-        interval: str | None = None,
-        precision: str | None = None
-    ) -> MarketChart:
-
-        url = (
-            f"{self.BASE_URL}/coins/"
-            f"{coin_id}/market_chart/range"
-        )
-
-        params = {
-            "vs_currency": vs_currency,
-            "from": from_timestamp,
-            "to": to_timestamp
+        params: dict[str, str | int | float | bool | None] = {
+            "vs_currency": data.vs_currency,
+            "from": data.from_timestamp,
+            "to": data.to_timestamp,
         }
 
-        if interval is not None:
-            params["interval"] = interval
+        if data.interval is not None:
+            params["interval"] = data.interval
 
-        if precision is not None:
-            params["precision"] = precision
+        if data.precision is not None:
+            params["precision"] = data.precision
 
-        headers = {
-            "x-cg-demo-api-key": self._api_key
-        }
+        headers = {"x-cg-demo-api-key": self.api_key}
 
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                url,
-                params=params,
-                headers=headers
-            )
+        response = await self.client.get(url, params=params, headers=headers)
 
         response.raise_for_status()
 
-        data = response.json()
+        response_data = response.json()
 
-        return MarketChart(
-            prices=data["prices"],
-            market_caps=data["market_caps"],
-            total_volumes=data["total_volumes"]
+        return MarketChartSchema(
+            prices=response_data["prices"],
+            market_caps=response_data["market_caps"],
+            total_volumes=response_data["total_volumes"],
         )

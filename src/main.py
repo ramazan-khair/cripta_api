@@ -8,22 +8,14 @@ from src.ioc import AppProvider
 
 config = Config()
 
-container = make_async_container(
-    AppProvider(),
-    context={Config: config}
-)
+container = make_async_container(AppProvider(), context={Config: config})
 
 
 def get_app() -> FastAPI:
-    app = FastAPI(
-        title="Crypto API"
-    )
+    app = FastAPI(title="Crypto API")
 
     app.include_router(router)
 
-    setup_dishka(
-        container,
-        app
-    )
+    setup_dishka(container, app)
 
     return app
