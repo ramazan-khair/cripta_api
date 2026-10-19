@@ -15,7 +15,15 @@ class PostgresConfig(BaseModel):
 
 
 class Config(BaseModel):
-    postgres: PostgresConfig = Field(default_factory=lambda: PostgresConfig(**env))
+    postgres: PostgresConfig = Field(
+        default_factory=lambda: PostgresConfig(
+            POSTGRES_HOST=env["POSTGRES_HOST"],
+            POSTGRES_PORT=int(env["POSTGRES_PORT"]),
+            POSTGRES_USER=env["POSTGRES_USER"],
+            POSTGRES_PASSWORD=env["POSTGRES_PASSWORD"],
+            POSTGRES_DB=env["POSTGRES_DB"],
+        )
+    )
     coingecko_api_key: str = env["COINGECKO_API_KEY"]
     coingecko_base_url: str = env["COINGECKO_BASE_URL"]
 

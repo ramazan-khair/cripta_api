@@ -1,17 +1,6 @@
-from dataclasses import dataclass
 from typing import Protocol
 
-from src.application.schemas import MarketChartSchema
-
-
-@dataclass(slots=True)
-class MarketChartRequest:
-    coin_id: str
-    vs_currency: str
-    from_timestamp: int
-    to_timestamp: int
-    interval: str | None = None
-    precision: int | None = None
+from src.application.schemas import MarketChartRequest, MarketChartSchema
 
 
 class MarketChartGateway(Protocol):

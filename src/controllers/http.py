@@ -1,8 +1,8 @@
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
 from fastapi import APIRouter, Depends
 
-from src.application.interactors import GetMarketChartInteractor, MarketChartRequest
-from src.application.schemas import MarketChartSchema
+from src.application.interactors import GetMarketChartInteractor
+from src.application.schemas import MarketChartRequest, MarketChartSchema
 from src.controllers.schemas import MarketChartQuery
 
 router = APIRouter(route_class=DishkaRoute)

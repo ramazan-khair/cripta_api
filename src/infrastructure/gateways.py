@@ -2,8 +2,7 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.application.interactors import MarketChartRequest
-from src.application.schemas import MarketChartSchema
+from src.application.schemas import MarketChartRequest, MarketChartSchema
 from src.config import Config
 from src.infrastructure.persistence.models import IdempotencyRecord
 

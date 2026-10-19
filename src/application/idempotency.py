@@ -2,7 +2,7 @@ import hashlib
 import json
 from dataclasses import asdict
 
-from src.application.interactors import MarketChartRequest
+from src.application.schemas import MarketChartRequest
 
 
 class Sha256IdempotencyKeyGenerator:
