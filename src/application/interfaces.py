@@ -12,6 +12,8 @@ class TransactionManager(Protocol):
 
 
 class IdempotencyGateway(Protocol):
+    async def create(self, key: str) -> bool: ...
+
     async def get(
             self,
             key: str,
@@ -22,6 +24,8 @@ class IdempotencyGateway(Protocol):
             key: str,
             response: MarketChartSchema,
     ) -> None: ...
+
+    async def delete(self, key: str) -> None: ...
 
 
 class IdempotencyKeyGenerator(Protocol):

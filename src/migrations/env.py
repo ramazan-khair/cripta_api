@@ -1,4 +1,3 @@
-import os
 import sys
 from logging.config import fileConfig
 from pathlib import Path
@@ -8,6 +7,7 @@ from sqlalchemy import engine_from_config, pool
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from src.config import config_
 from src.infrastructure.persistence.base import Base
 
 # this is the Alembic Config object, which provides
@@ -15,13 +15,7 @@ from src.infrastructure.persistence.base import Base
 config = context.config
 config.set_main_option(
     "sqlalchemy.url",
-    "postgresql+psycopg://{user}:{password}@{host}:{port}/{db}".format(
-        user=os.getenv("POSTGRES_USER"),
-        password=os.getenv("POSTGRES_PASSWORD"),
-        host=os.getenv("POSTGRES_HOST"),
-        port=os.getenv("POSTGRES_PORT"),
-        db=os.getenv("POSTGRES_DB"),
-    ),
+    f"postgresql+psycopg://{config_.postgres.login}:{config_.postgres.password}@{config_.postgres.host}:{config_.postgres.port}/{config_.postgres.database}",
 )
 
 # Interpret the config file for Python logging.

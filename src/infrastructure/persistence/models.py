@@ -12,7 +12,7 @@ class IdempotencyRecord(Base):
     __tablename__ = "idempotency_records"
 
     idempotency_key: Mapped[str] = mapped_column(unique=True, nullable=False)
-    response_data: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    response_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

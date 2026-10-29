@@ -1,5 +1,6 @@
 import httpx
-from sqlalchemy import select
+from sqlalchemy import delete, select, update
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.schemas import MarketChartRequest, MarketChartSchema
@@ -48,15 +49,31 @@ class PostgresIdempotencyGateway:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    async def create(self, key: str) -> bool:
+        statement = (
+            insert(IdempotencyRecord)
+            .values(idempotency_key=key, response_data=None)
+            .on_conflict_do_nothing(index_elements=[IdempotencyRecord.idempotency_key])
+            .returning(IdempotencyRecord.idempotency_key)
+        )
+
+        result = await self.session.execute(statement)
+        created_key = result.scalar_one_or_none()
+
+        return created_key is not None
+
+
     async def get(
             self,
             key: str
     ) -> MarketChartSchema | None:
         statement = select(IdempotencyRecord).where(IdempotencyRecord.idempotency_key == key)
+
         result = await self.session.execute(statement)
+
         record = result.scalar_one_or_none()
 
-        if record is None:
+        if record is None or record.response_data is None:
             return None
 
         return MarketChartSchema.model_validate(record.response_data)
@@ -67,9 +84,16 @@ class PostgresIdempotencyGateway:
             key: str,
             response: MarketChartSchema
     ) -> None:
-        record = IdempotencyRecord(
-            idempotency_key=key,
-            response_data=response.model_dump(mode="json")
-        )
-        self.session.add(record)
+        statement = (update(IdempotencyRecord)
+                     .where(IdempotencyRecord.idempotency_key == key)
+                     .values(response_data=response.model_dump(mode="json"))
+                     )
+
+        await self.session.execute(statement)
+        await self.session.commit()
+
+    async def delete(self, key: str) -> None:
+        statement = delete(IdempotencyRecord).where(IdempotencyRecord.idempotency_key == key)
+
+        await self.session.execute(statement)
         await self.session.commit()
