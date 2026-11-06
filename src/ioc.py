@@ -58,10 +58,12 @@ class AppProvider(Provider):
             market_chart_gateway: MarketChartGateway,
             idempotency_gateway: IdempotencyGateway,
             idempotency_key_generator: IdempotencyKeyGenerator,
+            transaction_manager: interfaces.TransactionManager,
     ) -> GetMarketChartInteractor:
         return GetMarketChartInteractor(
             market_chart_gateway=market_chart_gateway,
             idempotency_gateway=idempotency_gateway,
             idempotency_key_generator=idempotency_key_generator,
+            transaction_manager=transaction_manager,
         )
 

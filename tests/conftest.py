@@ -2,18 +2,20 @@ import asyncio
 import os
 import sys
 from collections.abc import AsyncGenerator
-from typing import cast
-from unittest.mock import MagicMock, create_autospec
+from unittest.mock import MagicMock
 
+import httpx
 import pytest
 import pytest_asyncio
 from dishka import AsyncContainer, Provider, Scope, make_async_container, provide
+from dishka.integrations.fastapi import setup_dishka
+from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from src.application import interfaces
-from src.application.interactors import GetMarketChartInteractor
 from src.application.schemas import MarketChartRequest, MarketChartSchema
 from src.config import Config, PostgresConfig
+from src.controllers.http import router
 from src.infrastructure.persistence.base import Base
 from src.infrastructure.persistence.models import IdempotencyRecord  # noqa: F401
 from src.ioc import AppProvider
@@ -64,8 +66,11 @@ async def session(
     session_maker: async_sessionmaker[AsyncSession],
 ) -> AsyncGenerator[AsyncSession]:
     async with session_maker() as db_session:
-        yield db_session
-        await db_session.rollback()
+        try:
+            yield db_session
+        finally:
+            await db_session.rollback()
+
 
 
 @pytest.fixture
@@ -117,59 +122,67 @@ def market_chart_response() -> MarketChartSchema:
 
 
 @pytest.fixture
-def market_chart_gateway() -> MagicMock:
-    return cast(
-        MagicMock,
-        create_autospec(
-            interfaces.MarketChartGateway,
-            instance=True,
-            spec_set=True,
-        ),
+def coingecko_config(postgres_config: PostgresConfig) -> Config:
+    return Config(
+        postgres=postgres_config,
+        coingecko_api_key="test-api-key",
+        coingecko_base_url="https://api.example.test/api/v3"
     )
 
 
 @pytest.fixture
-def idempotency_gateway() -> MagicMock:
-    return cast(
-        MagicMock,
-        create_autospec(
-            interfaces.IdempotencyGateway,
-            instance=True,
-            spec_set=True,
-        ),
+def upstream_requests() -> list[httpx.Request]:
+    return []
+
+
+@pytest.fixture
+def upstream_transport(
+        market_chart_response: MarketChartSchema,
+        upstream_requests: list[httpx.Request],
+) -> httpx.AsyncBaseTransport:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        upstream_requests.append(request)
+
+        await asyncio.sleep(0.15)
+
+        return httpx.Response(
+            status_code=200,
+            json=market_chart_response.model_dump(mode="json")
+        )
+
+    return httpx.MockTransport(handler)
+
+
+@pytest.fixture
+def api_app(
+        session_maker: async_sessionmaker[AsyncSession],
+        coingecko_config: Config,
+        upstream_transport: httpx.AsyncBaseTransport,
+) -> FastAPI:
+    class TestAppProvider(AppProvider):
+        @provide(scope=Scope.APP)
+        async def get_httpx_async_client(
+                self
+        ) -> AsyncGenerator[httpx.AsyncClient]:
+            async with httpx.AsyncClient(
+                transport=upstream_transport,
+            ) as client:
+                yield client
+
+        @provide(scope=Scope.APP)
+        def get_session_maker(
+            self
+        ) -> async_sessionmaker[AsyncSession]:
+            return session_maker
+
+    container = make_async_container(
+        TestAppProvider(),
+        context={Config: coingecko_config},
     )
 
+    app = FastAPI()
+    app.include_router(router)
 
-@pytest.fixture
-def idempotency_key_generator() -> MagicMock:
-    return MagicMock(return_value="test-key")
+    setup_dishka(container, app)
 
-
-@pytest.fixture
-def interactor(
-    market_chart_gateway: MagicMock,
-    idempotency_gateway: MagicMock,
-    idempotency_key_generator: MagicMock,
-) -> GetMarketChartInteractor:
-    return GetMarketChartInteractor(
-        market_chart_gateway=cast(
-            interfaces.MarketChartGateway,
-            market_chart_gateway,
-        ),
-        idempotency_gateway=cast(
-            interfaces.IdempotencyGateway,
-            idempotency_gateway,
-        ),
-        idempotency_key_generator=cast(
-            interfaces.IdempotencyKeyGenerator,
-            idempotency_key_generator,
-        ),
-    )
-
-
-@pytest.fixture
-def coingecko_config() -> MagicMock:
-    config = MagicMock(spec=Config)
-    config.coingecko_api_key = "test-api-key"
-    config.coingecko_base_url = "https://api.example.test/api/v3"
-    return config
+    return app

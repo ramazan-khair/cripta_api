@@ -90,10 +90,8 @@ class PostgresIdempotencyGateway:
                      )
 
         await self.session.execute(statement)
-        await self.session.commit()
 
     async def delete(self, key: str) -> None:
         statement = delete(IdempotencyRecord).where(IdempotencyRecord.idempotency_key == key)
 
         await self.session.execute(statement)
-        await self.session.commit()
