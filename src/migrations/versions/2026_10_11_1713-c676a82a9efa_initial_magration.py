@@ -25,9 +25,7 @@ def upgrade() -> None:
     op.create_table(
         "idempotency_records",
         sa.Column("idempotency_key", sa.String(), nullable=False),
-        sa.Column(
-            "response_data", postgresql.JSONB(astext_type=sa.Text()), nullable=False
-        ),
+        sa.Column("response_data", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),

@@ -21,7 +21,7 @@ async def test_get_returns_none_for_unknown_key(
 
 @pytest.mark.asyncio
 async def test_idempotency_key_can_be_reserved_only_once(
-        session: AsyncSession,
+    session: AsyncSession,
 ) -> None:
     gateway = PostgresIdempotencyGateway(session)
     key = f"reservation-{uuid4()}"
@@ -32,10 +32,11 @@ async def test_idempotency_key_can_be_reserved_only_once(
     assert first_reservation is True
     assert duplicate_reservation is False
 
+
 @pytest.mark.asyncio
 async def test_saved_response_can_be_read_back(
-        session: AsyncSession,
-        market_chart_response: MarketChartSchema,
+    session: AsyncSession,
+    market_chart_response: MarketChartSchema,
 ) -> None:
     gateway = PostgresIdempotencyGateway(session)
     key = f"response-{uuid4()}"
@@ -47,9 +48,10 @@ async def test_saved_response_can_be_read_back(
 
     assert result == market_chart_response
 
+
 @pytest.mark.asyncio
 async def test_deleting_reservation_allows_a_new_attempt(
-        session: AsyncSession,
+    session: AsyncSession,
 ) -> None:
     gateway = PostgresIdempotencyGateway(session)
     key = f"retry-{uuid4()}"

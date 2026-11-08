@@ -10,24 +10,23 @@ class MarketChartGateway(Protocol):
 class TransactionManager(Protocol):
     async def commit(self) -> None: ...
 
-    async def rollback(self) -> None: ...
-
 
 class IdempotencyGateway(Protocol):
     async def create(self, key: str) -> bool: ...
 
     async def get(
-            self,
-            key: str,
+        self,
+        key: str,
     ) -> MarketChartSchema | None: ...
 
     async def save(
-            self,
-            key: str,
-            response: MarketChartSchema,
+        self,
+        key: str,
+        response: MarketChartSchema,
     ) -> None: ...
 
     async def delete(self, key: str) -> None: ...
+
 
 class IdempotencyKeyGenerator(Protocol):
     def __call__(self, data: MarketChartRequest) -> str: ...

@@ -29,7 +29,7 @@ class AppProvider(Provider):
 
     @provide(scope=Scope.REQUEST)
     async def get_session(
-            self, session_maker: async_sessionmaker[AsyncSession]
+        self, session_maker: async_sessionmaker[AsyncSession]
     ) -> AsyncIterable[
         AnyOf[
             AsyncSession,
@@ -39,13 +39,16 @@ class AppProvider(Provider):
         async with session_maker() as session:
             yield session
 
-
     @provide(scope=Scope.APP)
-    def get_coingecko_gateway(self, client: httpx.AsyncClient, config: Config) -> interfaces.MarketChartGateway:
+    def get_coingecko_gateway(
+        self, client: httpx.AsyncClient, config: Config
+    ) -> interfaces.MarketChartGateway:
         return CoinGeckoGateway(client=client, config=config)
 
     @provide(scope=Scope.REQUEST)
-    def get_postgres_idempotency_gateway(self, session: AsyncSession) -> interfaces.IdempotencyGateway:
+    def get_postgres_idempotency_gateway(
+        self, session: AsyncSession
+    ) -> interfaces.IdempotencyGateway:
         return PostgresIdempotencyGateway(session=session)
 
     @provide(scope=Scope.APP)
@@ -54,11 +57,11 @@ class AppProvider(Provider):
 
     @provide(scope=Scope.REQUEST)
     def get_market_chart_interactor(
-            self,
-            market_chart_gateway: MarketChartGateway,
-            idempotency_gateway: IdempotencyGateway,
-            idempotency_key_generator: IdempotencyKeyGenerator,
-            transaction_manager: interfaces.TransactionManager,
+        self,
+        market_chart_gateway: MarketChartGateway,
+        idempotency_gateway: IdempotencyGateway,
+        idempotency_key_generator: IdempotencyKeyGenerator,
+        transaction_manager: interfaces.TransactionManager,
     ) -> GetMarketChartInteractor:
         return GetMarketChartInteractor(
             market_chart_gateway=market_chart_gateway,
@@ -66,4 +69,3 @@ class AppProvider(Provider):
             idempotency_key_generator=idempotency_key_generator,
             transaction_manager=transaction_manager,
         )
-

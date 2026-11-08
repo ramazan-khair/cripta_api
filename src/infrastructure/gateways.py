@@ -62,11 +62,7 @@ class PostgresIdempotencyGateway:
 
         return created_key is not None
 
-
-    async def get(
-            self,
-            key: str
-    ) -> MarketChartSchema | None:
+    async def get(self, key: str) -> MarketChartSchema | None:
         statement = select(IdempotencyRecord).where(IdempotencyRecord.idempotency_key == key)
 
         result = await self.session.execute(statement)
@@ -78,16 +74,12 @@ class PostgresIdempotencyGateway:
 
         return MarketChartSchema.model_validate(record.response_data)
 
-
-    async def save(
-            self,
-            key: str,
-            response: MarketChartSchema
-    ) -> None:
-        statement = (update(IdempotencyRecord)
-                     .where(IdempotencyRecord.idempotency_key == key)
-                     .values(response_data=response.model_dump(mode="json"))
-                     )
+    async def save(self, key: str, response: MarketChartSchema) -> None:
+        statement = (
+            update(IdempotencyRecord)
+            .where(IdempotencyRecord.idempotency_key == key)
+            .values(response_data=response.model_dump(mode="json"))
+        )
 
         await self.session.execute(statement)
 

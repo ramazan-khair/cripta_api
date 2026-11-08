@@ -1,4 +1,3 @@
-
 import httpx
 import pytest
 
@@ -9,9 +8,9 @@ from src.infrastructure.gateways import CoinGeckoGateway
 
 @pytest.mark.asyncio
 async def test_gateway_sends_expected_http_request_and_parses_response(
-        market_chart_request: MarketChartRequest,
-        market_chart_response: MarketChartSchema,
-        coingecko_config: Config,
+    market_chart_request: MarketChartRequest,
+    market_chart_response: MarketChartSchema,
+    coingecko_config: Config,
 ) -> None:
     received_requests: list[httpx.Request] = []
 
@@ -45,9 +44,7 @@ async def test_gateway_propagates_http_error(
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(503, json={"error": "unavailable"})
 
-    async with httpx.AsyncClient(
-        transport=httpx.MockTransport(handler)
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
         gateway = CoinGeckoGateway(client=client, config=coingecko_config)
 
         with pytest.raises(httpx.HTTPStatusError):
