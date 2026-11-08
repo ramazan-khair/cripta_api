@@ -1,0 +1,2 @@
+class IdempotencyRequestInProgress(Exception):
+    pass
