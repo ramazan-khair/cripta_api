@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "cripta-api": {
+      "type": "local",
+      "command": [
+        "C:\\Users\\user\\PycharmProjects\\cripta\\.venv\\Scripts\\python.exe",
+        "-m",
+        "src.controllers.mcp.main"
+      ],
+      "cwd": "C:\\Users\\user\\PycharmProjects\\cripta",
+      "environment": {
+        "POSTGRES_HOST": "localhost",
+        "POSTGRES_PORT": "5433"
+      },
+      "enabled": true
+    }
+  }
+}
