@@ -1,8 +1,6 @@
 import asyncio
 import sys
 
-import anyio
-
 from src.controllers.mcp.server import mcp
 
 
@@ -13,7 +11,5 @@ def _new_event_loop() -> asyncio.AbstractEventLoop:
 
 
 if __name__ == "__main__":
-    anyio.run(
-        mcp.run_async,
-        backend_options={"loop_factory": _new_event_loop},
-    )
+    with asyncio.Runner(loop_factory=_new_event_loop) as runner:
+        runner.run(mcp.run_async())
