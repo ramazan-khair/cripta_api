@@ -11,5 +11,4 @@ def _new_event_loop() -> asyncio.AbstractEventLoop:
 
 
 if __name__ == "__main__":
-    with asyncio.Runner(loop_factory=_new_event_loop) as runner:
-        runner.run(mcp.run_async())
+    asyncio.run(mcp.run_async(), loop_factory=_new_event_loop)
